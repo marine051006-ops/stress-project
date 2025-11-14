@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Stress Detector</title>
+    <!--
+    This is a single-file static conversion of a multi-file Streamlit application.
+    - Python backend logic (ML models, data loading) is simulated in JavaScript.
+    - Server-side functions (email sending) are removed.
+    - Page navigation is handled by JavaScript.
+    - All styles are embedded from the provided style.css file.
+    -->
+    <style>
+        /* --- 1. GLOBAL & FONT IMPORT --- */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* --- 2. RESET & BASE STYLES --- */
+        html, body, .stApp {
+            font-family: 'Inter', sans-serif !important;
+            background: linear-gradient(180deg, #FDFCFB 0%, #F5F7FA 100%) !important;
+            color: #111827 !important;
+        }
+
+        /* --- 3. HIDE STREAMLIT DEFAULTS --- */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+
+        /* Remove top padding from the main content area */
+        .stApp .main .block-container {
+            padding-top: 2rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            max-width: 100%;
+        }
+
+        /* --- 4. SIDEBAR STYLING --- */
+        [data-testid="stSidebar"] {
+            background: #FFFFFF !important;
+            border-right: 1px solid #E5E7EB;
+            padding: 1.5rem;
+            width: 300px;
+            flex-shrink: 0;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+        }
+
+        /* Sidebar Title */
+        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] .sidebar-content > div:first-child > div > h1 {
+            font-weight: 700;
+            font-size: 1.75rem;
+            color: #111827;
+        }
+        
+        [data-testid="stSidebar"] h3 {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #111827;
+            padding-top: 1.5rem;
+            border-top: 1px solid #E5E7EB;
+            margin-top: 1.5rem;
+        }
+
+        /* Sidebar Caption */
+        [data-testid="stSidebar"] .sidebar-caption {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+
+        /* --- 5. LANDING PAGE SECTIONS --- */
+
+        /* Utility Classes */
+        .section-container {
+            width: 100%;
+            padding: 6rem 0; /* Large spacing */
+        }
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* 1. Hero Section */
+        .hero-section-container {
+            padding-top: 2rem; /* Reduced top padding */
+        }
+        .hero-section {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4rem;
+            min-height: 70vh;
+        }
+        .hero-content {
+            max-width: 600px;
+        }
+        .hero-content h1 {
+            font-size: 4.5rem; /* Large typography */
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.025em;
+        }
+        .hero-content p {
+            font-size: 1.25rem;
+            color: #4B5563;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+        /* CTA Button Wrapper */
+        .cta-wrapper button, .cta-button {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            background: linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%);
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 0 rgba(59, 130, 246, 0);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .cta-wrapper button:hover, .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 4px rgba(59, 130, 246, 0.2);
+            border: none;
+        }
+        .cta-wrapper button:focus, .cta-button:focus {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 4px rgba(59, 130, 246, 0.2);
+            border: none;
+            color: #FFFFFF;
+        }
+
+        .hero-image {
+            max-width: 500px;
+            flex-shrink: 0;
+        }
+        .hero-image img {
+            width: 100%;
+            border-radius: 1rem;
+        }
+
+        /* 2. "How It Works" Section */
+        .how-it-works-section .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem auto;
+        }
+        .how-it-works-section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        .how-it-works-section p {
+            font-size: 1.1rem;
+            color: #4B5563;
+            line-height: 1.6;
+        }
+
+        .how-it-works-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+        .how-it-works-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+        .how-it-works-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .how-it-works-card .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ECFDF5 0%, #E0F2FE 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            border: 1px solid #D1FAE5;
+        }
+        .how-it-works-card .icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: #10B981;
+            stroke-width: 2;
+        }
+        .how-it-works-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.75rem;
+        }
+        .how-it-works-card p {
+            font-size: 1rem;
+            color: #4B5563;
+            line-height: 1.6;
+        }
+
+        /* 3. Features Section (Glassmorphism) */
+        .features-section {
+            background: #0F172A; /* Dark background for contrast */
+            color: #FFFFFF;
+        }
+        .features-section .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem auto;
+        }
+        .features-section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 1rem;
+        }
+        .features-section p {
+            font-size: 1.1rem;
+            color: #94A3B8;
+            line-height: 1.6;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+        .feature-card {
+            /* Glassmorphism */
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 0.75rem;
+        }
+        .feature-card p {
+            font-size: 1rem;
+            color: #E2E8F0;
+            line-height: 1.6;
+        }
+
+        /* 4. Live Preview Section */
+        .preview-section .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem auto;
+        }
+        .preview-section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        .preview-section p {
+            font-size: 1.1rem;
+            color: #4B5563;
+            line-height: 1.6;
+        }
+        .preview-widget {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .preview-widget h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        .preview-widget .placeholder-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #10B981;
+            margin: 2rem 0;
+            background: #F0FDF4;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px dashed #A7F3D0;
+        }
+        .preview-widget p {
+            font-size: 1rem;
+            color: #4B5563;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* 6. Footer Section */
+        .footer-section {
+            width: 100%;
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid #E5E7EB;
+        }
+        .footer-section p {
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+
+        /* Responsive (Mobile) */
+        @media (max-width: 768px) {
+            body.stApp {
+                flex-direction: column;
+            }
+            [data-testid="stSidebar"] {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid #E5E7EB;
+            }
+            .main {
+                width: 100%;
+            }
+            .hero-section {
+                flex-direction: column-reverse;
+                text-align: center;
+                padding-top: 2rem;
+            }
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .hero-content p {
+                font-size: 1rem;
+            }
+            .hero-image {
+                max-width: 300px;
+            }
+            .how-it-works-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* --- 7. NEW NAVBAR STYLES --- */
+        .navbar-container {
+            width: 100%;
+            background: #FFFFFF;
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            margin-bottom: 2rem; /* Add space between navbar and hero */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Style all buttons inside the navbar */
+        .navbar-button {
+            background: transparent;
+            color: #374151; /* Dark grey text */
+            border: none;
+            padding: 10px 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        /* Hover effect for navbar buttons */
+        .navbar-button:hover {
+            background: #F3F4F6; /* Light grey background on hover */
+            color: #111827; /* Black text on hover */
+        }
+
+        /* Active/Focus state for accessibility */
+        .navbar-button:focus {
+            background: #F3F4F6;
+            color: #111827;
+            box-shadow: 0 0 0 2px #D1D5DB; /* Add a focus ring */
+            border: none;
+            outline: none;
+        }
+        
+        /* --- 8. POPOVER (MODAL) CONTENT STYLING --- */
+
+        .popover-content {
+            padding: 0.5rem;
+        }
+
+        /* General pop-up titles (like in "Help" and "Learn") */
+        .popover-content h3 {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: #111827;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #F3F4F6;
+            padding-bottom: 0.5rem;
+        }
+
+        .popover-content p {
+            font-size: 1rem;
+            color: #4B5563;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .popover-content p strong {
+            color: #374151;
+            font-weight: 600;
+        }
+
+        /* --- 9. EMERGENCY HELP BUTTONS (in Help Popup) --- */
+        .emergency-buttons {
+            margin-top: 1rem;
+        }
+        .emergency-buttons .emergency-link,
+        .emergency-buttons .emergency-button {
+            background-color: #DC2626; /* Red-600 */
+            color: #FFFFFF !important;
+            border: none;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 10px 15px;
+            transition: background-color 0.2s ease;
+            text-align: center;
+            text-decoration: none; /* Clean up link styling */
+            width: 100%;
+            display: block;
+            margin-bottom: 8px; /* Spacing between buttons */
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .emergency-buttons .emergency-link:hover,
+        .emergency-buttons .emergency-button:hover {
+            background-color: #B91C1C; /* Darker Red-700 on hover */
+            color: #FFFFFF !important;
+            border: none;
+        }
+        .emergency-buttons .emergency-link:focus,
+        .emergency-buttons .emergency-button:focus {
+            background-color: #B91C1C;
+            color: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3); /* Red focus ring */
+            border: none;
+            outline: none;
+        }
+
+        /* --- 10. NEW "DEVELOPED BY" POPOVER STYLES --- */
+
+        /* Title: "Developed By" */
+        .popover-content .popover-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        /* Intro paragraph */
+        .popover-content .popover-intro {
+            font-size: 1rem;
+            color: #4B5563;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* Subtitle: "Team Members" / "Guided By" */
+        .popover-content .popover-subtitle {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111827;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Container for one person (pic + text) */
+        .popover-content .person-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 6px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .popover-content .person-container:hover {
+            background-color: #F9FAFB; /* Light hover effect */
+        }
+
+        /* Circular profile picture */
+        .popover-content .profile-pic {
+            width: 60px;      /* Increased size */
+            height: 60px;     /* Increased size */
+            border-radius: 50%; /* circular */
+            object-fit: cover;  /* prevents stretching */
+            margin-right: 12px;
+            border: 2px solid #E5E7EB; /* A subtle border */
+        }
+
+        /* Container for the text (Name + Reg) */
+        .popover-content .person-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Person's Name */
+        .popover-content .person-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 2px;
+        }
+
+        /* Person's Registration / Role */
+        .popover-content .person-reg {
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+
+        /* --- CUSTOM STATIC-SITE STYLES --- */
+
+        /* Main layout */
+        body.stApp {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+        .main {
+            flex-grow: 1;
+            overflow-y: auto;
+            height: 100vh;
+        }
+        
+        /* Sidebar Navigation */
+        [data-testid="stRadio"] {
+            border-radius: 12px;
+            background-color: #F3F4F6;
+            padding: 8px;
+            border: 1px solid #E5E7EB;
+        }
+        .nav-item {
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin: 4px 0;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease;
+        }
+        .nav-item:hover {
+            background-color: #E5E7EB;
+            color: #111827;
+        }
+        .nav-item.active {
+            background-color: #FFFFFF;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid #D1D5DB;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        /* Modal (Popover) styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.1);
+            min-width: 450px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-close-btn {
+            background: #F3F4F6;
+            color: #374151;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            float: right;
+            margin-top: 1rem;
+        }
+        .modal-close-btn:hover {
+            background: #E5E7EB;
+        }
+
+        /* Detection Page Styles */
+        .slider-container {
+            margin-bottom: 1.5rem;
+        }
+        .slider-container label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        .slider-container input[type="range"] {
+            width: 100%;
+        }
+        .slider-value {
+            font-weight: 600;
+            color: #3B82F6;
+        }
+        #detect-button {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            background: #10B981;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #detect-button:hover {
+            background: #059669;
+        }
+        .detect-result-box {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .detect-info { background-color: #E0F2FE; color: #0284C7; }
+        .detect-success { background-color: #F0FDF4; color: #16A34A; }
+        .detect-warning { background-color: #FFFBEB; color: #D97706; }
+        .detect-error { background-color: #FFF1F2; color: #E11D48; }
+
+        /* Data Page Styles */
+        #data-page-container h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; }
+        #data-page-container h2 { font-size: 1.75rem; font-weight: 600; margin-bottom: 1rem; margin-top: 2rem; }
+        #data-page-container details {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+        #data-page-container summary {
+            font-size: 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .data-checkbox-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        .data-checkbox-options div {
+            flex: 1;
+            min-width: 200px;
+        }
+        .data-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        th {
+            background-color: #F9FAFB;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #F9FAFB;
+        }
+        
+        /* Chat Page Styles */
+        #chat-page-container h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; }
+        .chat-info-box {
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            background-color: #E0F2FE; color: #0284C7;
+            margin-bottom: 1rem;
+        }
+        .chat-warning-box {
+             padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            background-color: #FFFBEB; color: #D97706;
+            margin-bottom: 1rem;
+        }
+        .chat-api-key-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        #gemini-api-key {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        #chat-history {
+            height: 60vh;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            background: #FFFFFF;
+            margin-bottom: 1rem;
+        }
+        .chat-message {
+            margin-bottom: 1rem;
+            max-width: 80%;
+        }
+        .chat-message .role {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        .chat-message .content {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+        .chat-message.user {
+            margin-left: auto;
+        }
+        .chat-message.user .role { color: #3B82F6; text-align: right; }
+        .chat-message.user .content { background-color: #DBEAFE; color: #1E40AF; }
+        
+        .chat-message.assistant .role { color: #10B981; }
+        .chat-message.assistant .content { background-color: #F0FDF4; color: #065F46; }
+
+        #chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+        #chat-prompt {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        #chat-send-btn {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            background: #3B82F6;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        #chat-send-btn:hover {
+            background: #2563EB;
+        }
+        #chat-send-btn:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+        }
+
+
+    </style>
+</head>
+<body class="stApp">
+
+    <!-- Sidebar -->
+    <div data-testid="stSidebar">
+        <h1>Navigation</h1>
+
+        <!-- Custom Sidebar Navigation (replaces st.radio) -->
+        <div data-testid="stRadio">
+            <div class="nav-item active" onclick="showPage('page-home')">Home</div>
+            <div class="nav-item" onclick="showPage('page-data')">Data Info</div>
+            <div class="nav-item" onclick="showPage('page-detect')">Detection</div>
+            <div class="nav-item" onclick="showPage('page-chat')">Support Chat</div>
+        </div>
+
+        <h3>Settings</h3>
+        <p class="sidebar-caption">
+            This is a static version of the Stress Detector app.
+            Features requiring a server, like emergency email alerts, are disabled.
+        </p>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main">
+        <div class="block-container">
+
+            <!-- Page 1: Home -->
+            <div id="page-home" class="page">
+                
+                <!-- Navbar (from home.py) -->
+                <div class="navbar-container">
+                    <button class="navbar-button" onclick="showPage('page-detect')">Analyse</button>
+                    <button class="navbar-button" onclick="openModal('modal-help')">Help</button>
+                    <button class="navbar-button" onclick="openModal('modal-learn')">Learn</button>
+                    
+                    <!-- 
+                      NOTE: PDF generation is a backend function.
+                      This button now downloads a static, sample text file.
+                    -->
+                    <a href="data:text/plain;charset=utf-8,This is a sample report. In the full application, this PDF is dynamically generated based on your stress level."
+                       download="Sample_Stress_Report.txt"
+                       class="navbar-button"
+                       style="background: #F3F4F6;">
+                        Download
+                    </a>
+                    
+                    <button class="navbar-button" onclick="openModal('modal-devs')">Developed By</button>
+                </div>
+
+                <!-- Hero Section (from home.py) -->
+                <div class="section-container hero-section-container">
+                    <div class="hero-section">
+                        <div class="hero-content">
+                            <h1>Human Stress Detector</h1>
+                            <p>
+                                Using advanced machine learning, we analyze your physiological
+                                signals to provide real-time stress detection. Understand your
+                                body, manage your stress, and find support when you need it most.
+                            </p>
+                            <div class="cta-wrapper">
+                                <button class="cta-button" onclick="showPage('page-detect')">Start Detection Now</button>
+                            </div>
+                        </div>
+                        <div class="hero-image">
+                            <!-- Using a placeholder for the local image 'home.jpg' -->
+                            <img src="https://placehold.co/600x400/E5E7EB/111827?text=Stress+Detection+Visual" alt="Stress detection visual">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How It Works Section (from home.py) -->
+                <div class="section-container" style="background: #F9FAFB;">
+                    <div class="section how-it-works-section">
+                        <div class="section-header">
+                            <h2>How It Works</h2>
+                            <p>A simple, three-step process to understand your well-being.</p>
+                        </div>
+                        <div class="how-it-works-grid">
+                            <div class="how-it-works-card">
+                                <div class="icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-3.024.018l-2.018.96a3 3 0 00-1.5 2.754V21a3 3 0 003 3h12a3 3 0 003-3v-1.146a3 3 0 00-1.5-2.754l-2.018-.96a3 3 0 00-3.024-.018l-.501.24a3 3 0 01-3.024.018l-.501-.24zM6.5 18.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.5 18.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5c-7.732 0-14 4.701-14 10.5c0 1.583.504 3.06 1.398 4.35l.206.306c.683.992 1.63 1.86 2.748 2.508c1.118.648 2.36 1.107 3.646 1.353c1.286.246 2.594.375 3.91.375c1.316 0 2.624-.129 3.91-.375c1.286-.246 2.528-.705 3.646-1.353c1.118-.648 2.065-1.516 2.748-2.508l.206-.306c.894-1.29 1.398-2.767 1.398-4.35C26 6.201 19.732 1.5 12 1.5z" />
+                                    </svg>
+                                </div>
+                                <h3>1. Collect Signals</h3>
+                                <p>The system acquires physiological signals from sensors like ECG, GSR, and Body Temperature.</p>
+                            </div>
+                            <div class="how-it-works-card">
+                                <div class="icon">
+                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                    </svg>
+                                </div>
+                                <h3>2. Analyze Features</h3>
+                                <p>A Decision Tree Classifier analyzes key features extracted from the signals to identify stress patterns.</p>
+                            </div>
+                            <div class="how-it-works-card">
+                                <div class="icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.518a.563.563 0 01.32 1.024l-4.34 3.15a.563.563 0 00-.18.636l1.644 5.093a.563.563 0 01-.815.636l-4.34-3.15a.563.563 0 00-.65 0l-4.34 3.15a.563.563 0 01-.815-.636l1.644-5.093a.563.563 0 00-.18-.636l-4.34-3.15a.563.563 0 01.32-1.024h5.518a.563.563 0 00.475-.31l2.125-5.111z" />
+                                    </svg>
+                                </div>
+                                <h3>3. Output Stress Level</h3>
+                                <p>Receive a clear classification, from "Calm" to "Very High Stress," helping you understand your state.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Features Section (from home.py) -->
+                <div class="section-container features-section">
+                    <div class="section">
+                        <div class="section-header">
+                            <h2>Everything You Need</h2>
+                            <p>Our application is more than just a detector; it's a complete support system.</p>
+                        </div>
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <h3>Real-Time Detection</h3>
+                                <p>Input your sensor data on the 'Detection' page and get an instant analysis of your current stress level.</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>Data Insights</h3>
+                                <p>Visit the 'Data Info' page to explore the dataset, understand the features, and see the statistics behind the model.</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>Emergency Support Chat</h3>
+                                <p>If a 'Very High Stress' level is detected, the 'Support Chat' page activates, connecting you to an empathetic AI assistant.</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>Emergency Email Alerts</h3>
+                                <p>(Feature disabled in static version) Set an emergency contact. If suicidal tendencies are detected, an alert is sent.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Live Detection Preview Section (from home.py) -->
+                <div class="section-container preview-section">
+                    <div class="section">
+                        <div class="section-header">
+                            <h2>Live Detection Preview</h2>
+                            <p>The 'Detection' page provides a simple interface for real-time analysis.</p>
+                        </div>
+                        <div class="preview-widget">
+                            <h3>Your Current Stress Level:</h3>
+                            <div class="placeholder-text">
+                                CALM 😄
+                            </div>
+                            <p>This widget is a preview of the interactive tool. Navigate to the 'Detection' page to use the live classifier.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer (from home.py) -->
+                <div class="footer-section">
+                    <p>Developed by 24BCE1330, 24BCE1318, 24BCE1387<br>
+                    Under guidance of Dr. A. Swaminathan</p>
+                </div>
+            </div>
+
+            <!-- Page 2: Data Info -->
+            <div id="page-data" class="page" style="display: none;">
+                <div id="data-page-container">
+                    <h1>Data Info Page</h1>
+                    
+                    <h2>View Data</h2>
+                    <details>
+                        <summary>View Mock Data</summary>
+                        <p>Note: The original `Stress.csv` file was not provided. This is a small, representative sample of mock data for demonstration.</p>
+                        <div id="data-table-container" class="data-table-container">
+                            <!-- JS will render table here -->
+                        </div>
+                    </details>
+
+                    <h2>Columns Description:</h2>
+                    <label>
+                        <input type="checkbox" id="chk-summary" onchange="toggleDataView('summary')"> View Summary
+                    </label>
+                    <div id="summary-table-container" class="data-table-container" style="display: none;">
+                        <!-- JS will render summary table here -->
+                    </div>
+
+                    <div class="data-checkbox-options">
+                        <div>
+                            <label>
+                                <input type="checkbox" id="chk-colnames" onchange="toggleDataView('colnames')"> Column Names
+                            </label>
+                            <div id="colnames-container" style="display: none;">
+                                <!-- JS will render col names here -->
+                            </div>
+                        </div>
+                        <div>
+                            <label>
+                                <input type="checkbox" id="chk-coltypes" onchange="toggleDataView('coltypes')"> Column Data Types
+                            </label>
+                            <div id="coltypes-container" style="display: none;">
+                                <!-- JS will render col types here -->
+                            </div>
+                        </div>
+                        <div>
+                            <label>
+                                <input type="checkbox" id="chk-coldata" onchange="toggleDataView('coldata')"> Column Data
+                            </label>
+                            <div id="coldata-container" style="display: none;">
+                                <select id="col-select" onchange="renderColumnData()">
+                                    <!-- JS will populate options -->
+                                </select>
+                                <div id="coldata-table-container" class="data-table-container">
+                                    <!-- JS will render single col data -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="#" style="font-size: 24px; text-decoration: none; margin-top: 2rem; display: block;">Get Dataset (Link disabled)</a>
+                </div>
+            </div>
+
+            <!-- Page 3: Detection -->
+            <div id="page-detect" class="page" style="display: none;">
+                <h1>Stress Detection Page</h1>
+                <p style="font-size:25px">
+                    This app uses a <b style="color:green">Decision Tree Classifier</b> for the Detection of Stress Level.
+                </p>
+                <p><b>Note:</b> The original Python machine learning model cannot run in a browser. This page <b>simulates</b> the detection logic based on your inputs for demonstration purposes.</p>
+
+                <h2>Select Values:</h2>
+                
+                <div class="slider-container">
+                    <label for="slider-gsr">GSR Data: <span id="val-gsr" class="slider-value">500</span></label>
+                    <input type="range" id="slider-gsr" min="0" max="1000" value="500" oninput="updateSlider('gsr')">
+                </div>
+                <div class="slider-container">
+                    <label for="slider-rr">Respiration Rate: <span id="val-rr" class="slider-value">20</span></label>
+                    <input type="range" id="slider-rr" min="10" max="40" value="20" oninput="updateSlider('rr')">
+                </div>
+                <div class="slider-container">
+                    <label for="slider-bt">Body Temperature (in °F): <span id="val-bt" class="slider-value">98.6</span></label>
+                    <input type="range" id="slider-bt" min="95" max="105" value="98.6" step="0.1" oninput="updateSlider('bt')">
+                </div>
+                <div class="slider-container">
+                    <label for="slider-lm">Limb Movement: <span id="val-lm" class="slider-value">10</span></label>
+                    <input type="range" id="slider-lm" min="0" max="50" value="10" oninput="updateSlider('lm')">
+                </div>
+                <div class="slider-container">
+                    <label for="slider-bo">Blood Oxygen(%): <span id="val-bo" class="slider-value">98</span></label>
+                    <input type="range" id="slider-bo" min="90" max="100" value="98" oninput="updateSlider('bo')">
+                </div>
+                <div class="slider-container">
+                    <label for="slider-rem">Rapid Eye Movement: <span id="val-rem" class="slider-value">5</span></label>
+                    <input type="range" id="slider-rem" min="0" max="20" value="5" oninput="updateSlider('rem')">
+                </div>
+                <div class="slider-container">
+                    <label for="slider-sh">Sleeping Hour: <span id="val-sh" class="slider-value">8</span></label>
+                    <input type="range" id="slider-sh" min="0" max="12" value="8" step="0.5" oninput="updateSlider('sh')">
+                </div>
+                <div class="slider-container">
+                    <label for="slider-hr">Heart Rate: <span id="val-hr" class="slider-value">75</span></label>
+                    <input type="range" id="slider-hr" min="50" max="180" value="75" oninput="updateSlider('hr')">
+                </div>
+
+                <button id="detect-button" onclick="runDetection()">Detect</button>
+
+                <div id="detect-result"></div>
+            </div>
+
+            <!-- Page 4: Chat -->
+            <div id="page-chat" class="page" style="display: none;">
+                <div id="chat-page-container">
+                    <h1>Support Chat</h1>
+
+                    <div id="chat-activation-message">
+                        <!-- JS will populate this -->
+                    </div>
+                    
+                    <div id="chat-content" style="display: none;">
+                        <div class="chat-warning-box">
+                            Please provide your own Gemini API Key to use the chat.
+                            This app does not store or share your key.
+                        </div>
+                        <div class="chat-api-key-input">
+                            <input type="password" id="gemini-api-key" placeholder="Enter your Gemini API Key">
+                        </div>
+                        
+                        <div id="chat-history">
+                            <!-- Chat messages will be appended here -->
+                        </div>
+                        <div id="chat-input-area">
+                            <input type="text" id="chat-prompt" placeholder="You can talk to me...">
+                            <button id="chat-send-btn">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modals (Popovers) -->
+
+    <!-- Help Modal -->
+    <div id="modal-help" class="modal-overlay">
+        <div class="modal-content">
+            <div class="popover-content">
+                <h3>How to Use This App</h3>
+                <p>
+                    1.  <strong>Home:</strong> You are here! This page gives an overview of the app.
+                </p>
+                <p>
+                    2.  <strong>Data Info:</strong> Explore the (mock) raw dataset used to train our stress detection model.
+                </p>
+                <p>
+                    3.  <strong>Detection:</strong> Go to the 'Analyse' (or 'Detection') page. Use the sliders to input physiological data. Click 'Detect' to see the (simulated) stress level result.
+                </p>
+                <p>
+                    4.  <strong>Support Chat:</strong> If a 'Very High Stress' level is detected, this page provides an AI-powered chat for immediate support. (Requires Gemini API Key).
+                </p>
+                <p>
+                    5.  <strong>Settings:</strong> (Static Version) Emergency email alerts are disabled.
+                </p>
+            </div>
+            
+            <div class="emergency-buttons">
+                <hr>
+                <a href="https://icallhelpline.org/" target="_blank" class="emergency-link">Help is one click away</a>
+                <button class="emergency-button" onclick="openModal('modal-speak')">Speak to someone</button>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modal-help')">Close</button>
+        </div>
+    </div>
+    
+    <!-- Speak to Someone Modal -->
+    <div id="modal-speak" class="modal-overlay">
+        <div class="modal-content">
+             <div class="popover-content" style="padding-top: 1rem;">
+                <p style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">
+                    9152987821
+                </p>
+                <p>
+                    Kindly dial this phone number to speak to a representative right now.
+                </p>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modal-speak')">Close</button>
+        </div>
+    </div>
+
+    <!-- Learn Modal -->
+    <div id="modal-learn" class="modal-overlay">
+        <div class="modal-content">
+            <div class="popover-content">
+                <h3>How It Works</h3>
+                <p>
+                    This stress detection system operates through a user-friendly web interface shown on the Detection Page. Instead of relying on live sensors, this application empowers you to manually input your current physiological data using a series of simple sliders.
+                </p>
+                <p>
+                    You provide values for eight key parameters: GSR Data, Respiration Rate, Body Temperature, Limb Movement, Blood Oxygen, Rapid Eye Movement, Sleeping Hour, and Heart Rate.
+                </p>
+                <p>
+                    Once you have entered these values, the system feeds this into its core: a pre-trained <strong>Decision Tree Classifier</strong>. (In this static version, this logic is simulated). This machine learning model analyzes the specific combination of your inputs, comparing them to patterns it learned during its training.
+                </p>
+                <p>
+                    Based on this analysis, the model immediately provides a "Stress level detected..." message, classifying your current state into one of four distinct levels: Stress Free and Calm, Low Stress, Medium Stress, or High Stress.
+                </p>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modal-learn')">Close</button>
+        </div>
+    </div>
+
+    <!-- Developed By Modal -->
+    <div id="modal-devs" class="modal-overlay">
+        <div class="modal-content">
+            <div class="popover-content">
+                <h3 class="popover-title">Developed By</h3>
+                <p class="popover-intro">
+                    This "Stress Detector" was built as a course project 
+                    for the Computer Networks course.
+                </p>
+
+                <h5 class="popover-subtitle">Team Members</h5>
+                
+                <div class="person-container">
+                    <!-- Using placeholder for ronil.jpeg -->
+                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=RK" class="profile-pic">
+                    <div class="person-details">
+                        <span class="person-name">Ronil Kumar Singh</span>
+                        <span class="person-reg">Registration: 24BCE1330</span>
+                    </div>
+                </div>
+
+                <div class="person-container">
+                    <!-- Using placeholder for parth.png -->
+                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=PA" class="profile-pic">
+                    <div class="person-details">
+                        <span class="person-name">Parthasarthi Agarwal</span>
+                        <span class="person-reg">Registration: 24BCE1318</span>
+                    </div>
+                </div>
+
+                <div class="person-container">
+                    <!-- Using placeholder for dheeraj.png -->
+                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=DK" class="profile-pic">
+                    <div class="person-details">
+                        <span class="person-name">Dheeraj Kothapalli</span>
+                        <span class="person-reg">Registration: 24BCE1387</span>
+                    </div>
+                </div>
+
+                <h5 class="popover-subtitle">Guided By</h5>
+
+                <div class="person-container">
+                    <!-- Using placeholder for swaminathan.jpeg -->
+                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=AS" class="profile-pic">
+                    <div class="person-details">
+                        <span class="person-name">Dr. A. Swaminathan</span>
+                        <span class="person-reg"> </span>
+                    </div>
+                </div>
+
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modal-devs')">Close</button>
+        </div>
+    </div>
+
+
+    <!-- ======================================== -->
+    <!--            JAVASCRIPT LOGIC              -->
+    <!-- ======================================== -->
+    <script>
+        // --- Global State ---
+        // Store detection results globally to be accessed by other pages
+        window.stressLevel = 0; // 0:Calm, 1:Low, 2:Medium, 3:High, 4:Very High
+        window.stressInputs = [];
+
+        // --- Page Navigation ---
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+            // Show the target page
+            document.getElementById(pageId).style.display = 'block';
+
+            // Update active state in nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.nav-item[onclick="showPage('${pageId}')"]`).classList.add('active');
+            
+            // Special logic for chat page
+            if (pageId === 'page-chat') {
+                checkChatActivation();
+            }
+        }
+        
+        // Show home page on initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            showPage('page-home');
+            renderMockDataTable();
+            populateColumnSelect();
+        });
+
+        // --- Modal (Popover) Logic ---
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Close modal if overlay is clicked
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeModal(overlay.id);
+                }
+            });
+        });
+
+        // --- Data Info Page Logic ---
+        const mockData = [
+            { gsr: 900, rr: 16, bt: 98.6, lm: 5, bo: 98, rem: 2, sh: 8, hr: 60, sl: 0 },
+            { gsr: 950, rr: 18, bt: 98.7, lm: 8, bo: 97, rem: 3, sh: 7.5, hr: 70, sl: 0 },
+            { gsr: 1000, rr: 20, bt: 98.8, lm: 10, bo: 97, rem: 4, sh: 7, hr: 80, sl: 1 },
+            { gsr: 1050, rr: 22, bt: 98.9, lm: 12, bo: 96, rem: 5, sh: 6.5, hr: 90, sl: 1 },
+            { gsr: 1100, rr: 25, bt: 99.0, lm: 15, bo: 96, rem: 6, sh: 6, hr: 100, sl: 2 },
+            { gsr: 1150, rr: 28, bt: 99.1, lm: 18, bo: 95, rem: 7, sh: 5.5, hr: 110, sl: 2 },
+            { gsr: 1200, rr: 30, bt: 99.2, lm: 20, bo: 95, rem: 8, sh: 5, hr: 120, sl: 3 },
+            { gsr: 1250, rr: 32, bt: 99.3, lm: 22, bo: 94, rem: 9, sh: 4.5, hr: 130, sl: 3 },
+            { gsr: 1300, rr: 35, bt: 99.4, lm: 25, bo: 94, rem: 10, sh: 4, hr: 140, sl: 4 },
+            { gsr: 1350, rr: 40, bt: 99.5, lm: 30, bo: 93, rem: 12, sh: 3, hr: 150, sl: 4 }
+        ];
+        
+        const mockDataTypes = {
+            gsr: 'int', rr: 'int', bt: 'float', lm: 'float', bo: 'float', rem: 'float', sh: 'float', hr: 'float', sl: 'int'
+        };
+
+        const mockSummary = {
+            gsr: { count: 10, mean: 1125, std: 177.9, min: 900, '25%': 1012.5, '50%': 1125, '75%': 1237.5, max: 1350 },
+            rr: { count: 10, mean: 26.6, std: 8.3, min: 16, '25%': 20.5, '50%': 26.5, '75%': 31.5, max: 40 },
+            hr: { count: 10, mean: 105, std: 30.3, min: 60, '25%': 82.5, '50%': 105, '75%': 127.5, max: 150 },
+            sl: { count: 10, mean: 2, std: 1.5, min: 0, '25%': 1, '50%': 2, '75%': 3, max: 4 }
+        };
+
+        function renderTable(data, containerId) {
+            const container = document.getElementById(containerId);
+            if (data.length === 0) {
+                container.innerHTML = "<p>No data to display.</p>";
+                return;
+            }
+            const headers = Object.keys(data[0]);
+            let table = '<table><thead><tr>';
+            headers.forEach(h => table += `<th>${h}</th>`);
+            table += '</tr></thead><tbody>';
+            data.forEach(row => {
+                table += '<tr>';
+                headers.forEach(h => table += `<td>${row[h]}</td>`);
+                table += '</tr>';
+            });
+            table += '</tbody></table>';
+            container.innerHTML = table;
+        }
+
+        function renderMockDataTable() {
+            renderTable(mockData, 'data-table-container');
+        }
+        
+        function populateColumnSelect() {
+            const select = document.getElementById('col-select');
+            const headers = Object.keys(mockData[0]);
+            select.innerHTML = headers.map(h => `<option value="${h}">${h}</option>`).join('');
+        }
+        
+        function renderColumnData() {
+            const colName = document.getElementById('col-select').value;
+            const colData = mockData.map(row => ({ [colName]: row[colName] }));
+            renderTable(colData, 'coldata-table-container');
+        }
+
+        function toggleDataView(view) {
+            if (view === 'summary') {
+                const chk = document.getElementById('chk-summary');
+                const div = document.getElementById('summary-table-container');
+                if (chk.checked) {
+                    div.style.display = 'block';
+                    // Render summary (mocked)
+                    const summaryData = Object.keys(mockSummary).map(key => ({ 
+                        metric: key, ...mockSummary[key] 
+                    }));
+                    renderTable(summaryData, 'summary-table-container');
+                } else {
+                    div.style.display = 'none';
+                }
+            } else if (view === 'colnames') {
+                const chk = document.getElementById('chk-colnames');
+                const div = document.getElementById('colnames-container');
+                if (chk.checked) {
+                    div.style.display = 'block';
+                    div.innerHTML = `<ul>${Object.keys(mockData[0]).map(k => `<li>${k}</li>`).join('')}</ul>`;
+                } else {
+                    div.style.display = 'none';
+                }
+            } else if (view === 'coltypes') {
+                const chk = document.getElementById('chk-coltypes');
+                const div = document.getElementById('coltypes-container');
+                if (chk.checked) {
+                    div.style.display = 'block';
+                    div.innerHTML = `<ul>${Object.keys(mockDataTypes).map(k => `<li><b>${k}</b>: ${mockDataTypes[k]}</li>`).join('')}</ul>`;
+                } else {
+                    div.style.display = 'none';
+                }
+            } else if (view === 'coldata') {
+                const chk = document.getElementById('chk-coldata');
+                const div = document.getElementById('coldata-container');
+                if (chk.checked) {
+                    div.style.display = 'block';
+                    renderColumnData();
+                } else {
+                    div.style.display = 'none';
+                }
+            }
+        }
+
+        // --- Detection Page Logic ---
+        function updateSlider(id) {
+            const val = document.getElementById(`slider-${id}`).value;
+            document.getElementById(`val-${id}`).innerText = val;
+        }
+
+        function runDetection() {
+            const gsr = parseFloat(document.getElementById('slider-gsr').value);
+            const rr = parseFloat(document.getElementById('slider-rr').value);
+            const bt = parseFloat(document.getElementById('slider-bt').value);
+            const lm = parseFloat(document.getElementById('slider-lm').value);
+            const bo = parseFloat(document.getElementById('slider-bo').value);
+            const rem = parseFloat(document.getElementById('slider-rem').value);
+            const sh = parseFloat(document.getElementById('slider-sh').value);
+            const hr = parseFloat(document.getElementById('slider-hr').value);
+            
+            window.stressInputs = [gsr, rr, bt, lm, bo, rem, sh, hr];
+
+            // --- SIMULATED DETECTION ---
+            // The original Decision Tree model cannot run here.
+            // This is a simple, illustrative simulation based on heart rate and respiration.
+            let score = (hr / 180) + (rr / 40); // Simple score
+            
+            let detection = 0;
+            if (score > 1.2) detection = 4;        // Very High
+            else if (score > 1.0) detection = 3;   // High
+            else if (score > 0.8) detection = 2;   // Medium
+            else if (score > 0.6) detection = 1;   // Low
+            else detection = 0;                    // Calm
+            
+            window.stressLevel = detection;
+            
+            // --- Display Result ---
+            const resultDiv = document.getElementById('detect-result');
+            let message = '';
+            let className = 'detect-info';
+
+            if (detection == 1) {
+                message = "The person has low stress level 🙂";
+                className = 'detect-success';
+            } else if (detection == 2) {
+                message = "The person has medium stress level 😐";
+                className = 'detect-warning';
+            } else if (detection == 3) {
+                message = "The person has high stress level! 😞";
+                className = 'detect-error';
+            } else if (detection == 4) {
+                message = "The person has very high stress level!! 😫<br>You seem to be under extreme stress. We strongly recommend visiting the <b>'Support Chat'</b> page in the sidebar for immediate assistance.";
+                className = 'detect-error';
+            } else {
+                message = "The person is stress free and calm 😄";
+                className = 'detect-success';
+            }
+            
+            resultDiv.innerHTML = `<div class="detect-result-box ${className}">${message}</div>`;
+        }
+        
+        // --- Chat Page Logic ---
+        const GREETING_QUESTION = "How are you feeling right now?";
+        const CRITICAL_QUESTIONS = [
+            "Can you tell me a bit more about what's making you feel this stressed?",
+            "How long have you been feeling this way?",
+            "Is there a specific event or thought that triggered this feeling?",
+            "Have you felt this way before?",
+            "When you feel this overwhelmed, do you ever feel hopeless, or like there's no way out?",
+            "Are you able to get any rest or sleep?",
+            "Are you feeling alone in this?",
+            "Have you ever thought about hurting yourself or ending your life?",
+            "Thank you for sharing. It's important to ask: Are you having any of those thoughts right now?",
+            "Is there anyone you can reach out to, like a friend or family member, to be with you right now?"
+        ];
+        
+        let chatHistory = [];
+        let questionsToAsk = [...CRITICAL_QUESTIONS];
+        let alertSent = false;
+        
+        const chatHistoryDiv = document.getElementById('chat-history');
+        const chatPromptInput = document.getElementById('chat-prompt');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatContentDiv = document.getElementById('chat-content');
+        const chatActivationMsg = document.getElementById('chat-activation-message');
+        const apiKeyInput = document.getElementById('gemini-api-key');
+
+        function checkChatActivation() {
+            if (window.stressLevel !== 4) {
+                chatActivationMsg.innerHTML = `<div class="chat-info-box">This chat is reserved for users who have been detected with 'Very High Stress'. Please use the 'Detection' page first.</div>`;
+                chatContentDiv.style.display = 'none';
+            } else {
+                 chatActivationMsg.innerHTML = `<div class="chat-info-box">The system noted you're under very high stress. Our AI assistant is here to listen.</div>`;
+                 chatContentDiv.style.display = 'block';
+                 // Add greeting if chat is new
+                 if (chatHistory.length === 0) {
+                     const greeting = `Hello, I'm a support assistant. I'm here to listen. ${GREETING_QUESTION}`;
+                     addMessageToChat('assistant', greeting);
+                 }
+            }
+        }
+        
+        function addMessageToChat(role, content) {
+            chatHistory.push({ role, content });
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+            
+            const roleDiv = document.createElement('div');
+            roleDiv.className = 'role';
+            roleDiv.innerText = role === 'user' ? 'You' : 'Support Bot';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'content';
+            contentDiv.innerText = content; // Using innerText to prevent HTML injection
+            
+            messageDiv.appendChild(roleDiv);
+            messageDiv.appendChild(contentDiv);
+            chatHistoryDiv.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+        }
+
+        async function handleChatSend() {
+            const prompt = chatPromptInput.value;
+            const apiKey = apiKeyInput.value;
+            
+            if (!prompt) return;
+            if (!apiKey) {
+                alert("Please enter your Gemini API Key to use the chat.");
+                return;
+            }
+            
+            addMessageToChat('user', prompt);
+            chatPromptInput.value = '';
+            chatSendBtn.disabled = true;
+
+            try {
+                // 1. Run risk analysis (simulated in this static version)
+                await runRiskAnalysis(prompt, apiKey);
+
+                // 2. Get bot response
+                const responseContent = await getBotResponse(apiKey);
+                addMessageToChat('assistant', responseContent);
+            
+            } catch (error) {
+                console.error(error);
+                addMessageToChat('assistant', `I'm sorry, I encountered an error. ${error.message}`);
+            } finally {
+                chatSendBtn.disabled = false;
+            }
+        }
+        
+        chatSendBtn.addEventListener('click', handleChatSend);
+        chatPromptInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleChatSend();
+        });
+
+        async function runRiskAnalysis(userMessage, apiKey) {
+            if (alertSent) return;
+            
+            const riskPrompt = `
+                Analyze the following user's message. The user is in a high-stress state.
+                Does this message contain clear suicidal ideation, intent, or discussion of self-harm?
+                Respond ONLY with the single word 'YES' or 'NO'.
+
+                Message: "${userMessage}"
+            `;
+            
+            const model = 'gemini-2.5-flash';
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: riskPrompt }] }]
+                };
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Google API error: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                const text = result.candidates[0].content.parts[0].text.trim().toUpperCase();
+
+                if (text === "YES") {
+                    alertSent = true;
+                    // Original app sent an email. We cannot do that from a static file.
+                    // We will add a prominent message instead.
+                    const alertMsg = "I'm detecting a high level of distress and potential risk in your message. Your safety is most important. Please, if you are in crisis, reach out to a support line immediately. You can find resources by searching for 'crisis text line' or 'suicide prevention lifeline'.";
+                    addMessageToChat('assistant', alertMsg);
+                    console.warn("SUICIDAL RISK DETECTED. Email alert is disabled in static version.");
+                }
+            } catch (e) {
+                console.error("Error in risk analysis:", e);
+                // Don't interrupt the chat flow
+            }
+        }
+
+        async function getBotResponse(apiKey) {
+            const prompt = `
+                You are an empathetic, non-judgmental support chatbot. Your goal is to talk to a user who has 'very high stress' and assess their risk.
+                Your persona is caring, patient, and a good listener.
+                
+                Here is the conversation history so far:
+                ${chatHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
+                
+                Here are the critical questions you still need to ask:
+                ${questionsToAsk.join('\n')}
+                
+                Your task:
+                1.  Respond to the user's last message with empathy and understanding.
+                2.  If it feels natural and appropriate, *seamlessly integrate* ONE of the unasked critical questions into your response.
+                3.  If you ask a question, make sure it's phrased naturally.
+                
+                After your response, on a COMPLETELY NEW LINE, write *only* ONE of the following formats:
+                -   If you asked one of the critical questions, write:
+                    ASKED: [The exact question text from the list that you asked]
+                -   If you did not ask one of the critical questions, write:
+                    ASKED: None
+            `;
+            
+            const model = 'gemini-2.5-flash';
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`Google API error: ${errorBody.error.message}`);
+                }
+
+                const result = await response.json();
+                const fullResponseText = result.candidates[0].content.parts[0].text;
+
+                let chatMessage = fullResponseText.trim();
+                
+                if (fullResponseText.includes("\nASKED:")) {
+                    const parts = fullResponseText.rsplit("\nASKED:", 1);
+                    chatMessage = parts[0].trim();
+                    const askedQText = parts[1].trim();
+                    
+                    if (questionsToAsk.includes(askedQText)) {
+                        questionsToAsk = questionsToAsk.filter(q => q !== askedQText);
+                    }
+                }
+                
+                return chatMessage;
+
+            } catch (e) {
+                console.error("Error getting bot response:", e);
+                return `I'm sorry, I'm having trouble connecting right now. Please check your API key and network connection. (${e.message})`;
+            }
+        }
+        
+    </script>
+</body>
+</html>
