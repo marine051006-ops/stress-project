@@ -4,13 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Human Stress Detector</title>
-    <!--
-    This is a single-file static conversion of a multi-file Streamlit application.
-    - Python backend logic (ML models, data loading) is simulated in JavaScript.
-    - Server-side functions (email sending) are removed.
-    - Page navigation is handled by JavaScript.
-    - All styles are embedded from the provided style.css file.
-    -->
     <style>
         /* --- 1. GLOBAL & FONT IMPORT --- */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -807,11 +800,9 @@
 </head>
 <body class="stApp">
 
-    <!-- Sidebar -->
     <div data-testid="stSidebar">
         <h1>Navigation</h1>
 
-        <!-- Custom Sidebar Navigation (replaces st.radio) -->
         <div data-testid="stRadio">
             <div class="nav-item active" onclick="showPage('page-home')">Home</div>
             <div class="nav-item" onclick="showPage('page-data')">Data Info</div>
@@ -826,23 +817,16 @@
         </p>
     </div>
 
-    <!-- Main Content Area -->
     <div class="main">
         <div class="block-container">
 
-            <!-- Page 1: Home -->
             <div id="page-home" class="page">
                 
-                <!-- Navbar (from home.py) -->
                 <div class="navbar-container">
                     <button class="navbar-button" onclick="showPage('page-detect')">Analyse</button>
                     <button class="navbar-button" onclick="openModal('modal-help')">Help</button>
                     <button class="navbar-button" onclick="openModal('modal-learn')">Learn</button>
                     
-                    <!-- 
-                      NOTE: PDF generation is a backend function.
-                      This button now downloads a static, sample text file.
-                    -->
                     <a href="data:text/plain;charset=utf-8,This is a sample report. In the full application, this PDF is dynamically generated based on your stress level."
                        download="Sample_Stress_Report.txt"
                        class="navbar-button"
@@ -853,7 +837,6 @@
                     <button class="navbar-button" onclick="openModal('modal-devs')">Developed By</button>
                 </div>
 
-                <!-- Hero Section (from home.py) -->
                 <div class="section-container hero-section-container">
                     <div class="hero-section">
                         <div class="hero-content">
@@ -868,13 +851,11 @@
                             </div>
                         </div>
                         <div class="hero-image">
-                            <!-- Using a placeholder for the local image 'home.jpg' -->
-                            <img src="https://placehold.co/600x400/E5E7EB/111827?text=Stress+Detection+Visual" alt="Stress detection visual">
+                            <img src="home.jpg" alt="Stress detection visual">
                         </div>
                     </div>
                 </div>
 
-                <!-- How It Works Section (from home.py) -->
                 <div class="section-container" style="background: #F9FAFB;">
                     <div class="section how-it-works-section">
                         <div class="section-header">
@@ -914,7 +895,6 @@
                     </div>
                 </div>
                 
-                <!-- Features Section (from home.py) -->
                 <div class="section-container features-section">
                     <div class="section">
                         <div class="section-header">
@@ -942,7 +922,6 @@
                     </div>
                 </div>
                 
-                <!-- Live Detection Preview Section (from home.py) -->
                 <div class="section-container preview-section">
                     <div class="section">
                         <div class="section-header">
@@ -959,14 +938,12 @@
                     </div>
                 </div>
 
-                <!-- Footer (from home.py) -->
                 <div class="footer-section">
                     <p>Developed by 24BCE1330, 24BCE1318, 24BCE1387<br>
                     Under guidance of Dr. A. Swaminathan</p>
                 </div>
             </div>
 
-            <!-- Page 2: Data Info -->
             <div id="page-data" class="page" style="display: none;">
                 <div id="data-page-container">
                     <h1>Data Info Page</h1>
@@ -976,8 +953,7 @@
                         <summary>View Mock Data</summary>
                         <p>Note: The original `Stress.csv` file was not provided. This is a small, representative sample of mock data for demonstration.</p>
                         <div id="data-table-container" class="data-table-container">
-                            <!-- JS will render table here -->
-                        </div>
+                            </div>
                     </details>
 
                     <h2>Columns Description:</h2>
@@ -985,8 +961,7 @@
                         <input type="checkbox" id="chk-summary" onchange="toggleDataView('summary')"> View Summary
                     </label>
                     <div id="summary-table-container" class="data-table-container" style="display: none;">
-                        <!-- JS will render summary table here -->
-                    </div>
+                        </div>
 
                     <div class="data-checkbox-options">
                         <div>
@@ -994,16 +969,14 @@
                                 <input type="checkbox" id="chk-colnames" onchange="toggleDataView('colnames')"> Column Names
                             </label>
                             <div id="colnames-container" style="display: none;">
-                                <!-- JS will render col names here -->
-                            </div>
+                                </div>
                         </div>
                         <div>
                             <label>
                                 <input type="checkbox" id="chk-coltypes" onchange="toggleDataView('coltypes')"> Column Data Types
                             </label>
                             <div id="coltypes-container" style="display: none;">
-                                <!-- JS will render col types here -->
-                            </div>
+                                </div>
                         </div>
                         <div>
                             <label>
@@ -1011,11 +984,9 @@
                             </label>
                             <div id="coldata-container" style="display: none;">
                                 <select id="col-select" onchange="renderColumnData()">
-                                    <!-- JS will populate options -->
-                                </select>
+                                    </select>
                                 <div id="coldata-table-container" class="data-table-container">
-                                    <!-- JS will render single col data -->
-                                </div>
+                                    </div>
                             </div>
                         </div>
                     </div>
@@ -1024,7 +995,6 @@
                 </div>
             </div>
 
-            <!-- Page 3: Detection -->
             <div id="page-detect" class="page" style="display: none;">
                 <h1>Stress Detection Page</h1>
                 <p style="font-size:25px">
@@ -1072,14 +1042,12 @@
                 <div id="detect-result"></div>
             </div>
 
-            <!-- Page 4: Chat -->
             <div id="page-chat" class="page" style="display: none;">
                 <div id="chat-page-container">
                     <h1>Support Chat</h1>
 
                     <div id="chat-activation-message">
-                        <!-- JS will populate this -->
-                    </div>
+                        </div>
                     
                     <div id="chat-content" style="display: none;">
                         <div class="chat-warning-box">
@@ -1091,8 +1059,7 @@
                         </div>
                         
                         <div id="chat-history">
-                            <!-- Chat messages will be appended here -->
-                        </div>
+                            </div>
                         <div id="chat-input-area">
                             <input type="text" id="chat-prompt" placeholder="You can talk to me...">
                             <button id="chat-send-btn">Send</button>
@@ -1104,9 +1071,6 @@
         </div>
     </div>
 
-    <!-- Modals (Popovers) -->
-
-    <!-- Help Modal -->
     <div id="modal-help" class="modal-overlay">
         <div class="modal-content">
             <div class="popover-content">
@@ -1137,7 +1101,6 @@
         </div>
     </div>
     
-    <!-- Speak to Someone Modal -->
     <div id="modal-speak" class="modal-overlay">
         <div class="modal-content">
              <div class="popover-content" style="padding-top: 1rem;">
@@ -1152,7 +1115,6 @@
         </div>
     </div>
 
-    <!-- Learn Modal -->
     <div id="modal-learn" class="modal-overlay">
         <div class="modal-content">
             <div class="popover-content">
@@ -1174,7 +1136,6 @@
         </div>
     </div>
 
-    <!-- Developed By Modal -->
     <div id="modal-devs" class="modal-overlay">
         <div class="modal-content">
             <div class="popover-content">
@@ -1187,8 +1148,7 @@
                 <h5 class="popover-subtitle">Team Members</h5>
                 
                 <div class="person-container">
-                    <!-- Using placeholder for ronil.jpeg -->
-                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=RK" class="profile-pic">
+                    <img src="ronil.jpeg" class="profile-pic">
                     <div class="person-details">
                         <span class="person-name">Ronil Kumar Singh</span>
                         <span class="person-reg">Registration: 24BCE1330</span>
@@ -1196,8 +1156,7 @@
                 </div>
 
                 <div class="person-container">
-                    <!-- Using placeholder for parth.png -->
-                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=PA" class="profile-pic">
+                    <img src="parth.png" class="profile-pic">
                     <div class="person-details">
                         <span class="person-name">Parthasarthi Agarwal</span>
                         <span class="person-reg">Registration: 24BCE1318</span>
@@ -1205,8 +1164,7 @@
                 </div>
 
                 <div class="person-container">
-                    <!-- Using placeholder for dheeraj.png -->
-                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=DK" class="profile-pic">
+                    <img src="dheeraj.png" class="profile-pic">
                     <div class="person-details">
                         <span class="person-name">Dheeraj Kothapalli</span>
                         <span class="person-reg">Registration: 24BCE1387</span>
@@ -1216,8 +1174,7 @@
                 <h5 class="popover-subtitle">Guided By</h5>
 
                 <div class="person-container">
-                    <!-- Using placeholder for swaminathan.jpeg -->
-                    <img src="https://placehold.co/60x60/E5E7EB/111827?text=AS" class="profile-pic">
+                    <img src="swaminathan.jpeg" class="profile-pic">
                     <div class="person-details">
                         <span class="person-name">Dr. A. Swaminathan</span>
                         <span class="person-reg"> </span>
@@ -1230,9 +1187,6 @@
     </div>
 
 
-    <!-- ======================================== -->
-    <!--            JAVASCRIPT LOGIC              -->
-    <!-- ======================================== -->
     <script>
         // --- Global State ---
         // Store detection results globally to be accessed by other pages
